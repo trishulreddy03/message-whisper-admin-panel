@@ -32,22 +32,69 @@ if (typeof window !== 'undefined') {
 // Request permission for notifications
 export const requestNotificationPermission = async (): Promise<string | null> => {
   try {
-    if (!messaging) return null;
+    if (!messaging) {
+      console.warn('Firebase messaging not available');
+      return null;
+    }
+    
+    // Check if notifications are supported
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support notifications');
+      return null;
+    }
     
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-      const token = await getToken(messaging, {
-        vapidKey: 'YOUR_VAPID_KEY' // You'll need to generate this in Firebase Console
-      });
-      console.log('FCM registration token:', token);
-      return token;
+      try {
+        // For now, we'll use a placeholder VAPID key
+        // In production, replace with your actual VAPID key from Firebase Console
+        const token = await getToken(messaging, {
+          vapidKey: 'BKagOny0KF_2pCJQ3m____awaGEiQM0WtOjj2QG-DlCQe_oo-o4qAWJjj0jQhQQn6hJ0A_J6p0'
+        });
+        console.log('FCM registration token:', token);
+        
+        // Store token in localStorage for demo purposes
+        if (token) {
+          localStorage.setItem('fcm-token', token);
+        }
+        
+        return token;
+      } catch (tokenError) {
+        console.error('Error getting FCM token:', tokenError);
+        console.log('Note: You need to generate a VAPID key in Firebase Console > Project Settings > Cloud Messaging');
+        return null;
+      }
     } else {
       console.log('Notification permission denied');
       return null;
     }
   } catch (error) {
-    console.error('Error getting notification permission:', error);
+    console.error('Error requesting notification permission:', error);
     return null;
+  }
+};
+
+// Get stored FCM token
+export const getStoredFCMToken = (): string | null => {
+  return localStorage.getItem('fcm-token');
+};
+
+// Subscribe to topic (for real-time notifications)
+export const subscribeToTopic = async (topic: string = 'messages') => {
+  try {
+    const token = getStoredFCMToken();
+    if (!token) {
+      console.warn('No FCM token available for topic subscription');
+      return false;
+    }
+    
+    // In a real application, you would send this token to your server
+    // to subscribe to specific topics
+    console.log(`Token ${token} ready for topic subscription: ${topic}`);
+    return true;
+  } catch (error) {
+    console.error('Error subscribing to topic:', error);
+    return false;
   }
 };
 

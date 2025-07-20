@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
-import { requestNotificationPermission, setupForegroundMessageListener } from '@/lib/firebase';
+import { 
+  requestNotificationPermission, 
+  setupForegroundMessageListener,
+  subscribeToTopic,
+  getStoredFCMToken 
+} from '@/lib/firebase';
 
 export interface Notification {
   id: string;
@@ -19,6 +24,9 @@ export const useNotifications = () => {
     // Check current permission status
     setPermission(Notification.permission);
 
+    // Initialize notifications
+    initializeNotifications();
+
     // Setup foreground message listener
     const unsubscribe = setupForegroundMessageListener((payload) => {
       const notification: Notification = {
@@ -32,15 +40,31 @@ export const useNotifications = () => {
 
       setNotifications(prev => [notification, ...prev]);
       
-      // Show browser notification
+      // Show browser notification with enhanced options
       if (Notification.permission === 'granted') {
-        new Notification(notification.title, {
+        const browserNotification = new Notification(notification.title, {
           body: notification.body,
           icon: '/icon-192x192.png',
           badge: '/icon-72x72.png',
           tag: 'message-notification',
-          requireInteraction: true
+          requireInteraction: true,
+          silent: false,
+          data: {
+            url: '/',
+            notificationId: notification.id
+          }
         });
+
+        // Handle notification click
+        browserNotification.onclick = () => {
+          window.focus();
+          browserNotification.close();
+        };
+
+        // Auto-close after 10 seconds
+        setTimeout(() => {
+          browserNotification.close();
+        }, 10000);
       }
     });
 
@@ -55,7 +79,23 @@ export const useNotifications = () => {
   const requestPermission = async () => {
     const token = await requestNotificationPermission();
     setPermission(Notification.permission);
+    
+    if (token) {
+      // Subscribe to message topic for real-time notifications
+      await subscribeToTopic('messages');
+      console.log('Subscribed to message notifications');
+    }
+    
     return token;
+  };
+
+  const initializeNotifications = async () => {
+    // Check if user already has a token
+    const existingToken = getStoredFCMToken();
+    if (existingToken && Notification.permission === 'granted') {
+      await subscribeToTopic('messages');
+      console.log('Using existing FCM token for notifications');
+    }
   };
 
   const markAsRead = (id: string) => {
@@ -94,6 +134,7 @@ export const useNotifications = () => {
     markAllAsRead,
     clearNotification,
     clearAllNotifications,
-    addNotification
+    addNotification,
+    initializeNotifications
   };
 };

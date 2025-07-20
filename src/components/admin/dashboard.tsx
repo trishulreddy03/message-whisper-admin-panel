@@ -23,6 +23,7 @@ import {
 import { useMessages } from '@/hooks/useMessages';
 import { formatDistanceToNow } from 'date-fns';
 import NotificationBell from '@/components/ui/notification-bell';
+import FCMSetup from '@/components/fcm-setup';
 
 const Dashboard: React.FC = () => {
   const { messages, loading, markAsRead, deleteMessage, stats } = useMessages();
@@ -353,7 +354,16 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Message Details Sidebar */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
+            {/* FCM Setup Component */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <FCMSetup />
+            </motion.div>
+
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
