@@ -49,7 +49,7 @@ export const requestNotificationPermission = async (): Promise<string | null> =>
         // For now, we'll use a placeholder VAPID key
         // In production, replace with your actual VAPID key from Firebase Console
         const token = await getToken(messaging, {
-          vapidKey: 'BKagOny0KF_2pCJQ3m____awaGEiQM0WtOjj2QG-DlCQe_oo-o4qAWJjj0jQhQQn6hJ0A_J6p0'
+          vapidKey: 'BKzOIYb0lKZJNxMitavGwZQnRPRNWyYNVK7Bjrof_mU2VPR7_xJfRskEVuDbTcoBqeszDlSbQpu3zMPt1AcdB60'
         });
         console.log('FCM registration token:', token);
         
